@@ -110,13 +110,10 @@ export class BoardService {
         newBoard.createdBy = userId;
         newBoard.cover = url;
         newBoard.coverId = publicId;
-        await newBoard.save();
-        const boardUpdated = await this.assign(userId, newBoard._id);
-        await this.boardPermissionService.onCreateBoard(
-          userId,
-          boardUpdated._id,
-        );
-        return boardUpdated;
+        newBoard.members.push(userId);
+        (await newBoard.save()).populate('members');
+        await this.boardPermissionService.onCreateBoard(userId, newBoard._id);
+        return newBoard;
       }
       throw new BadRequestException('Cover was not sent');
     } catch (error) {
